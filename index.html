@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Dhiren Ravi: Match Day</title>
+<meta name="description" content="Dhiren Ravi, co-founder of DRC Badminton Academy. A match-day schedule board of the events, teams and projects he has run.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;800;900&family=Hanken+Grotesk:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{--mat:#17479E;--deep:#0C2B63;--line:#F4F7FA;--shuttle:#FFD21F;--rule:rgba(244,247,250,.5)}
+*{box-sizing:border-box;margin:0}
+body{background:var(--mat);color:var(--line);font:400 16px/1.5 'Hanken Grotesk',system-ui,sans-serif;padding:clamp(16px,3vw,40px);min-height:100vh}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
+a{color:var(--shuttle)}
+:focus-visible{outline:3px solid var(--shuttle);outline-offset:2px}
+.top{display:grid;grid-template-columns:1fr minmax(260px,380px);gap:20px 48px;align-items:end;padding-bottom:20px}
+h1{font:900 clamp(84px,16vw,220px)/.78 'Big Shoulders Display',Impact,sans-serif}
+.who p+p{margin-top:10px}
+.who strong{font-weight:700}
+.how{color:var(--shuttle)}
+.bar{display:flex;flex-wrap:wrap;gap:10px 22px;align-items:center;padding:12px 0;border-top:3px solid var(--line);font-size:14px}
+.bar button{border:2px solid var(--line);padding:3px 12px;font-weight:500}
+.bar button:hover{background:var(--line);color:var(--mat)}
+.desk{display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:32px;margin-top:12px;align-items:start}
+#board{overflow-x:auto;padding-bottom:6px}
+.grid{display:grid;grid-template-columns:104px repeat(4,minmax(132px,1fr));min-width:680px;border:3px solid var(--line)}
+.ch{padding:8px 10px 10px;border-left:1.5px solid var(--rule);font-size:13px;line-height:1.25;border-bottom:3px solid var(--line)}
+.ch b{display:block;font:800 26px/1 'Big Shoulders Display',Impact,sans-serif}
+.ch:first-child{border-left:0}
+.rl{font-size:13px;line-height:1.25;padding:8px 8px 0 10px;border-top:1.5px solid var(--rule)}
+.cell{height:100px;padding:5px;border-top:1.5px solid var(--rule);border-left:1.5px solid var(--rule)}
+.grid>.ch+.rl,.grid>.rl:first-of-type{border-top:0}
+.slot{width:100%;height:100%;opacity:.25;font-size:20px}
+.moving .slot{opacity:1;outline:2px dashed var(--shuttle);outline-offset:-4px}
+.fx{width:100%;height:100%;background:var(--line);color:var(--deep);text-align:left;padding:8px 9px;display:flex;flex-direction:column;justify-content:space-between;cursor:grab;transition:transform .15s}
+.fx:hover{transform:translateY(-2px)}
+.fx.sel{background:var(--shuttle);box-shadow:4px 4px 0 var(--deep)}
+.fx.flash{animation:fl .9s ease-out}
+@keyframes fl{0%{background:var(--shuttle);transform:scale(1.07)}}
+.n{font:800 21px/.95 'Big Shoulders Display',Impact,sans-serif;text-transform:uppercase}
+.m{font-size:12px;line-height:1.25}
+#log{margin-top:14px;min-height:3em;font-size:14px;border-left:5px solid var(--shuttle);padding-left:12px}
+aside{position:sticky;top:16px;background:var(--deep);border:3px solid var(--line);padding:20px}
+aside h2,#listv h2{font:800 36px/.95 'Big Shoulders Display',Impact,sans-serif;margin-bottom:6px}
+.meta{font-weight:700;font-size:14px}
+.per{font-size:14px;opacity:.85}
+aside ul,#listv ul{margin:12px 0 0 18px;font-size:15px}
+li+li{margin-top:6px}
+.eq{margin-top:28px;border-top:1.5px solid var(--rule);padding-top:12px;font-size:14px;max-width:80ch}
+#listv{display:none}
+body.list #listv{display:block}
+body.list .desk{display:none}
+#listv li.f{list-style:none;margin:0;padding:18px 0;border-top:1.5px solid var(--rule);max-width:80ch}
+#listv ol{margin:0}
+@media(max-width:820px){.top,.desk{grid-template-columns:1fr}aside{position:static}}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<header class="top">
+  <h1>Match<br>day</h1>
+  <div class="who">
+    <p><strong>Dhiren Ravi</strong> runs this desk. Co-founder of DRC Badminton Academy, studying Digital Enterprise Management at the University of Toronto.</p>
+    <p class="how">Six fixtures sit on the board in the order they happened. Pick one, then pick where it goes, or drag it. Double-book a court and the board reflows.</p>
+  </div>
+</header>
+<div class="bar">
+  <span id="stats"></span>
+  <button id="reset" type="button">Reset to real order</button>
+  <button id="view" type="button" aria-pressed="false">List view</button>
+</div>
+<main class="desk">
+  <div>
+    <section id="board" aria-label="Schedule board: six fixtures across four courts"></section>
+    <p id="log" role="status">The board is loaded with the real running order. Move anything.</p>
+  </div>
+  <aside id="report" aria-live="polite"></aside>
+</main>
+<section id="listv" aria-label="All fixtures in order"></section>
+<p class="eq"><strong>Equipment.</strong> Business: project management, event management, digital marketing, financial acumen, business analysis. Technical: Figma, Canva, Adobe Creative Suite, Microsoft Office, Google Workspace, Python, HTML/CSS, JS.</p>
+<script>
+const COURTS=[["Court 1","Events and operations"],["Court 2","Coaching"],["Court 3","Design and marketing"],["Court 4","Machines"]];
+const ROWS=["Summer 2022","Sep 2023 to Aug 2024","Sep 2025 to now","Jan 2026","Feb 2026","Mar 2026"];
+const F={
+nissan:{name:"Nissan",role:"Assistant service technician",org:"Nissan Motor Corporation",per:"June to August 2022",at:[0,3],pts:["Assisted repairs and regular maintenance of customer vehicles.","Troubleshot mechanical, electrical and hydraulic systems.","Worked with co-workers to repair vehicles on time, and kept customers updated on their status."]},
+shuttle:{name:"ShuttleWhizz",role:"Badminton coach",org:"ShuttleWhizz Badminton Club",per:"September 2023 to August 2024",at:[1,1],pts:["Built personalized training plans for 20+ athletes by analyzing footwork, technique and gameplay.","Coached players aged 7 to 14.","Used positive reinforcement to build a strong team environment."]},
+drc:{name:"DRC Academy",role:"Co-founder",org:"DRC Badminton Academy",per:"September 2025 to present",at:[2,0],pts:["Set growth plans to raise brand visibility and audience engagement.","Manages scheduling, venue procurement, logistics and capacity planning for full training seasons and large events.","Leads marketing and community outreach to parents and new participants.","Oversees athlete enrollment and finances, and plans community tournaments."]},
+milton:{name:"Milton tournament",role:"Town of Milton Winter Badminton Tournament",org:"Event project",per:"January 2026",at:[3,0],pts:["Managed logistics and budgeting end to end for 100+ players.","Secured venues, food vendors and three corporate sponsors.","Designed tournament management software for player scheduling and match tracking."]},
+figma:{name:"Ticketmaster redesign",role:"Figma wireframe redesign",org:"University of Toronto course project",per:"February 2026",at:[4,2],pts:["Redesigned the Ticketmaster website in Figma for accessibility, ease of use and user satisfaction.","Researched user pain points and competitive gaps to prioritize improvements.","Pitched stakeholders data-backed recommendations, working in a cross-functional team."]},
+mkt:{name:"Rebrand campaign",role:"Digital marketing campaign",org:"University of Toronto course project",per:"March 2026",at:[5,2],pts:["Ran market research and consumer behavior analysis to find new customer segments.","Built a full rebranding strategy: logo redesign, website wireframe, social outreach and promotional content for downtown Toronto.","Aligned creative assets, pricing and online experience across a cross-functional team."]}
+};
+const ORDER=Object.keys(F);
+const board=document.getElementById('board'),rep=document.getElementById('report'),logEl=document.getElementById('log'),stats=document.getElementById('stats');
+let grid,sel=null,flash=[],clashes=0;
+function reset(){grid=ROWS.map(()=>Array(4).fill(null));ORDER.forEach(id=>{const[r,c]=F[id].at;grid[r][c]=id});sel=null;flash=[];clashes=0}
+function pos(id){for(let r=0;r<ROWS.length;r++)for(let c=0;c<4;c++)if(grid[r][c]===id)return{r,c}}
+function fx(id){const f=F[id];return `<button class="fx${sel===id?' sel':''}${flash.includes(id)?' flash':''}" draggable="true" data-id="${id}" aria-pressed="${sel===id}"><span class="n">${f.name}</span><span class="m">${f.role}</span></button>`}
+function render(){
+  let h='<div class="grid"><div class="ch"></div>'+COURTS.map(([k,n])=>`<div class="ch"><b>${k}</b>${n}</div>`).join('');
+  ROWS.forEach((lab,r)=>{h+=`<div class="rl">${lab}</div>`;for(let c=0;c<4;c++){const id=grid[r][c];h+=`<div class="cell" data-r="${r}" data-c="${c}">`+(id?fx(id):`<button class="slot" aria-label="Empty slot, ${lab}, ${COURTS[c][0]}">+</button>`)+'</div>'}});
+  board.innerHTML=h+'</div>';
+  document.body.classList.toggle('moving',!!sel);
+  stats.textContent=`${ORDER.length} fixtures, ${clashes} clashes resolved`;
+}
+function report(){
+  if(!sel){rep.innerHTML=`<h2>Director's note</h2><p>Honours BA, Specialist in Digital Enterprise Management at the University of Toronto, expected April 2027. Based in Toronto.</p><p style="margin-top:10px">Select any fixture to read its match report.</p><p style="margin-top:10px"><a href="mailto:dhiren.rc20@gmail.com">dhiren.rc20@gmail.com</a><br><a href="https://linkedin.com/in/dhiren-ravi/">linkedin.com/in/dhiren-ravi</a></p>`;return}
+  const f=F[sel],p=pos(sel);
+  rep.innerHTML=`<h2>${f.name}</h2><p class="meta">${f.role}</p><p class="per">${f.org}, ${f.per}. On ${COURTS[p.c][0]}, ${ROWS[p.r]}.</p><ul>${f.pts.map(x=>`<li>${x}</li>`).join('')}</ul>`;
+}
+function move(id,r,c){
+  const p=pos(id);if(p.r===r&&p.c===c)return;
+  const g=grid[r][c],f=F[id];grid[p.r][p.c]=null;flash=[id];
+  if(!g){grid[r][c]=id;logEl.textContent=`${f.name} moved to ${COURTS[c][0]}, ${ROWS[r]}. No clash.`}
+  else{
+    clashes++;flash.push(g);const gn=F[g].name;
+    const free=[0,1,2,3].filter(k=>!grid[r][k]).sort((a,b)=>Math.abs(a-c)-Math.abs(b-c))[0];
+    grid[r][c]=id;
+    if(free!==undefined){grid[r][free]=g;logEl.textContent=`Clash on ${COURTS[c][0]}, ${ROWS[r]}. ${gn} reflowed to ${COURTS[free][0]}.`}
+    else{grid[p.r][p.c]=g;logEl.textContent=`Row full. ${f.name} and ${gn} swapped places.`}
+  }
+  render();report();focusSel();
+}
+function focusSel(){if(!sel)return;const b=board.querySelector(`.fx[data-id="${sel}"]`);if(b)b.focus()}
+board.addEventListener('click',e=>{
+  const cell=e.target.closest('.cell');if(!cell)return;
+  const r=+cell.dataset.r,c=+cell.dataset.c,id=grid[r][c];
+  if(sel&&id!==sel)move(sel,r,c);
+  else if(id){sel=sel===id?null:id;flash=[];render();report();focusSel()}
+});
+board.addEventListener('dragstart',e=>{const b=e.target.closest('.fx');if(!b)return;sel=b.dataset.id;e.dataTransfer.setData('text/plain',sel);e.dataTransfer.effectAllowed='move';document.body.classList.add('moving');report()});
+board.addEventListener('dragover',e=>{if(e.target.closest('.cell'))e.preventDefault()});
+board.addEventListener('drop',e=>{const cell=e.target.closest('.cell');if(!cell||!sel)return;e.preventDefault();move(sel,+cell.dataset.r,+cell.dataset.c)});
+board.addEventListener('keydown',e=>{
+  const b=e.target.closest('.fx');if(!b||sel!==b.dataset.id)return;
+  const d={ArrowUp:[-1,0],ArrowDown:[1,0],ArrowLeft:[0,-1],ArrowRight:[0,1]}[e.key];if(!d)return;
+  e.preventDefault();const p=pos(sel),r=p.r+d[0],c=p.c+d[1];
+  if(r>=0&&r<ROWS.length&&c>=0&&c<4)move(sel,r,c);
+});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&sel){sel=null;render();report()}});
+document.getElementById('reset').addEventListener('click',()=>{reset();render();report();logEl.textContent='Back to the real running order.'});
+const viewBtn=document.getElementById('view'),listv=document.getElementById('listv');
+viewBtn.addEventListener('click',()=>{
+  const on=document.body.classList.toggle('list');
+  viewBtn.textContent=on?'Board view':'List view';viewBtn.setAttribute('aria-pressed',on);
+  listv.innerHTML='<ol>'+ORDER.map(id=>{const f=F[id];return `<li class="f"><h2>${f.name}</h2><p class="meta">${f.role}</p><p class="per">${f.org}, ${f.per}</p><ul>${f.pts.map(x=>`<li>${x}</li>`).join('')}</ul></li>`}).join('')+'</ol>';
+});
+reset();render();report();
+</script>
+</body>
+</html>
